@@ -1,9 +1,10 @@
+/* eslint-disable max-len */
 const autoBind = require('auto-bind');
 
 /**
  * handler albums
  */
-class AlbumsHandler {
+class SongsHandler {
   /**
    * constructor
    * @param {service} service
@@ -21,16 +22,16 @@ class AlbumsHandler {
    * @param {hapi} h
    * @return {response} response
    */
-  async postAlbumHandler(request, h) {
-    this._validator.validateAlbumPayload(request.payload);
-    const {name, year} = request.payload;
+  async postSongHandler(request, h) {
+    this._validator.validateSongPayload(request.payload);
+    const {title, year, genre, performer, duration = null, albumId = null} = request.payload;
 
-    const albumId = await this._service.addAlbum({name, year});
+    const songId = await this._service.addSong({title, year, genre, performer, duration, albumId});
     const response = h.response({
       status: 'success',
-      message: 'Album berhasil ditambahkan',
+      message: 'Lagu berhasil ditambahkan',
       data: {
-        albumId: albumId,
+        songId: songId,
       },
     });
     response.code(201);
@@ -39,16 +40,14 @@ class AlbumsHandler {
 
   /**
    * @param {request} request
-   * @param {any} h
    * @return {response} response
    */
-  async getAlbumByIdHandler(request, h) {
-    const {id} = request.params;
-    const album = await this._service.getAlbumById(id);
+  async getSongsHandler(request) {
+    const songs = await this._service.getSongs(request.query);
     return {
       status: 'success',
       data: {
-        album: album,
+        songs: songs,
       },
     };
   }
@@ -57,10 +56,25 @@ class AlbumsHandler {
    * @param {request} request
    * @return {response} response
    */
-  async putAlbumByIdHandler(request) {
-    this._validator.validateAlbumPayload(request.payload);
+  async getSongByIdHandler(request) {
     const {id} = request.params;
-    await this._service.editAlbumById(id, request.payload);
+    const song = await this._service.getSongById(id);
+    return {
+      status: 'success',
+      data: {
+        song: song,
+      },
+    };
+  }
+
+  /**
+   * @param {request} request
+   * @return {response} response
+   */
+  async putSongByIdHandler(request) {
+    this._validator.validateSongPayload(request.payload);
+    const {id} = request.params;
+    await this._service.editSongById(id, request.payload);
     return {
       status: 'success',
       message: 'Lagu berhasil diperbarui',
@@ -71,9 +85,9 @@ class AlbumsHandler {
    * @param {request} request
    * @return {response} response
    */
-  async deleteAlbumByIdHandler(request) {
+  async deleteSongByIdHandler(request) {
     const {id} = request.params;
-    await this._service.deleteAlbumById(id);
+    await this._service.deleteSongById(id);
     return {
       status: 'success',
       message: 'Lagu berhasil dihapus',
@@ -81,4 +95,4 @@ class AlbumsHandler {
   }
 }
 
-module.exports = AlbumsHandler;
+module.exports = SongsHandler;
