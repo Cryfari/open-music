@@ -1,6 +1,7 @@
 /* eslint-disable max-len */
 /* eslint-disable camelcase */
 
+
 exports.shorthands = undefined;
 
 exports.up = (pgm) => {
@@ -16,12 +17,6 @@ exports.up = (pgm) => {
     owner: {
       type: 'VARCHAR(50)',
       notNull: true,
-      foreignKey: {
-        name: 'fk_playlists.owner_users.user_id',
-        table: 'users',
-        mapping: 'user_id',
-        onDelete: 'CASCADE',
-      },
     },
   });
 };
