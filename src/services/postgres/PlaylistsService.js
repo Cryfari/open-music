@@ -12,9 +12,11 @@ const InvariantError = require('../../exceptions/InvariantError');
 class PlaylistsService {
   /**
    * constructor
+   * @param {CollaborationsService} collaborationsService
    */
-  constructor() {
+  constructor(collaborationsService) {
     this._pool = new Pool();
+    this._collaborationsService = collaborationsService;
   }
 
   /**
@@ -38,9 +40,11 @@ class PlaylistsService {
    */
   async getPlaylists(owner) {
     const query = {
-      text: `SELECT playlists.playlist_id, playlists.name, users.username FROM playlists
-      LEFT JOIN users ON users.user_id = playlists.owner
-      WHERE playlists.owner = $1`,
+      text: `SELECT playlists.playlist_id, playlists.name, users.username 
+      FROM playlists 
+      LEFT JOIN users ON users.user_id = playlists.owner 
+      LEFT JOIN collaborations ON collaborations.playlist_id = playlists.playlist_id 
+      WHERE collaborations.user_id = $1 OR playlists.owner = $1;`,
       values: [owner],
     };
     const result = await this._pool.query(query);
@@ -169,6 +173,11 @@ class PlaylistsService {
       await this.verifyPlaylistOwner(playlistId, userId);
     } catch (error) {
       if (error instanceof NotFoundError) {
+        throw error;
+      }
+      try {
+        await this._collaborationsService.verifyCollaborator(playlistId, userId);
+      } catch {
         throw error;
       }
     }
