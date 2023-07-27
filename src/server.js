@@ -1,3 +1,5 @@
+require('dotenv').config();
+const config = require('./utils/config');
 /* eslint-disable max-len */
 const Hapi = require('@hapi/hapi');
 const Jwt = require('@hapi/jwt');
@@ -23,7 +25,10 @@ const CollaborationsService = require('./services/postgres/CollaborationsService
 const CollaborationsValidator = require('./validator/collaborations');
 const ActivitiesService = require('./services/postgres/ActivitiesService');
 
-require('dotenv').config();
+const _exports = require('./api/exports');
+const ProducerService = require('./services/rabbitmq/ProducerService');
+const ExportsValidator = require('./validator/exports');
+
 
 const init = async () => {
   const collaborationsService = new CollaborationsService();
@@ -35,8 +40,8 @@ const init = async () => {
   const activitiesService = new ActivitiesService();
 
   const server = Hapi.server({
-    port: process.env.PORT,
-    host: process.env.HOST,
+    port: config.app.port,
+    host: config.app.host,
     routes: {
       cors: {
         origin: ['*'],
@@ -112,6 +117,14 @@ const init = async () => {
         collaborationsService,
         playlistsService,
         validator: CollaborationsValidator,
+      },
+    },
+    {
+      plugin: _exports,
+      options: {
+        producerService: ProducerService,
+        playlistsService: playlistsService,
+        validator: ExportsValidator,
       },
     },
   ]);
