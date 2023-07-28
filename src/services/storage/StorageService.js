@@ -17,11 +17,10 @@ class StorageService {
 
   /**
    * @param {readable} file
-   * @param {object} meta
+   * @param {object} filename
    * @return {object}
    */
-  writeFile(file, meta) {
-    const filename = +new Date() + meta.filename;
+  writeFile(file, filename) {
     const path = `${this._folder}/${filename}`;
 
     const fileStream = fs.createWriteStream(path);
@@ -31,6 +30,14 @@ class StorageService {
       file.pipe(fileStream);
       file.on('end', () => resolve(filename));
     });
+  }
+
+  /**
+   * @param {string} file
+   */
+  deleteFile(file) {
+    const path = `${this._folder}\\${file}`;
+    fs.unlinkSync(path);
   }
 }
 

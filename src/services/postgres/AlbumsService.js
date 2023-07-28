@@ -2,6 +2,7 @@ const {Pool} = require('pg');
 const {nanoid} = require('nanoid');
 const InvariantError = require('../../exceptions/InvariantError');
 const NotFoundError = require('../../exceptions/NotFoundError');
+const config = require('../../utils/config');
 
 /**
  * service albums
@@ -42,7 +43,10 @@ class AlbumsService {
    */
   async getAlbumById(id) {
     const queryAlbum = {
-      text: 'SELECT * FROM albums WHERE album_id = $1',
+      text: `SELECT albums.*, covers.filename 
+              FROM albums 
+              LEFT JOIN covers ON albums.album_id = covers.album_id WHERE 
+              albums.album_id = $1`,
       values: [id],
     };
     const resultAlbum = await this._pool.query(queryAlbum);
@@ -59,6 +63,7 @@ class AlbumsService {
       id: resultAlbum.rows[0].album_id,
       name: resultAlbum.rows[0].name,
       year: resultAlbum.rows[0].year,
+      coverUrl: resultAlbum.rows[0].filename?`http://${config.app.host}:${config.app.port}/albums/images/${resultAlbum.rows[0].filename}` : null,
       songs: resultSongs.rows[0]?.song_id ? resultSongs.rows.map((song) => ({
         id: song.song_id,
         title: song.title,
