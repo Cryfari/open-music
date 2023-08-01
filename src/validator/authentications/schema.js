@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 const Joi = require('joi');
 
 const PostAuthenticationPayloadSchema = Joi.object({

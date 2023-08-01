@@ -1,10 +1,9 @@
-/* eslint-disable max-len */
-/* eslint-disable camelcase */
-
-exports.shorthands = undefined;
-
 exports.up = (pgm) => {
-  pgm.addConstraint('songs', 'fk_songs.albumId_albums.album_id', 'FOREIGN KEY("albumId") REFERENCES albums(album_id) ON DELETE CASCADE');
+  pgm.addConstraint(
+      'songs',
+      'fk_songs.albumId_albums.album_id',
+      'FOREIGN KEY("albumId") REFERENCES albums(album_id) ON DELETE CASCADE',
+  );
 };
 
 exports.down = (pgm) => {

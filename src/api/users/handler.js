@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 const autoBind = require('auto-bind');
 
 /**

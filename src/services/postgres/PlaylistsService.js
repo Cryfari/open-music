@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 const {Pool} = require('pg');
 const {nanoid} = require('nanoid');
 const {mapDBToModelPlaylist, mapDBToModelSong} = require('../../utils');
@@ -42,8 +41,10 @@ class PlaylistsService {
     const query = {
       text: `SELECT playlists.playlist_id, playlists.name, users.username 
       FROM playlists 
-      LEFT JOIN users ON users.user_id = playlists.owner 
-      LEFT JOIN collaborations ON collaborations.playlist_id = playlists.playlist_id 
+      LEFT JOIN users
+      ON users.user_id = playlists.owner 
+      LEFT JOIN collaborations
+      ON collaborations.playlist_id = playlists.playlist_id 
       WHERE collaborations.user_id = $1 OR playlists.owner = $1;`,
       values: [owner],
     };
@@ -60,9 +61,12 @@ class PlaylistsService {
       users.username,
       songs.song_id, songs.title, songs.performer 
       FROM playlists 
-      INNER JOIN users ON playlists.owner = users.user_id 
-      INNER JOIN playlist_songs ON playlist_songs.playlist_id = $1
-      INNER JOIN songs ON songs.song_id = playlist_songs.song_id
+      INNER JOIN users 
+      ON playlists.owner = users.user_id 
+      INNER JOIN playlist_songs 
+      ON playlist_songs.playlist_id = $1
+      INNER JOIN songs 
+      ON songs.song_id = playlist_songs.song_id
       WHERE playlists.playlist_id = $1`,
       values: [playlistId],
     };
@@ -80,9 +84,11 @@ class PlaylistsService {
    */
   async getPlaylistById(id) {
     const query = {
-      text: `SELECT playlists.playlist_id, playlists.name, users.username FROM playlists
-      LEFT JOIN users ON users.user_id = playlists.owner
-      WHERE playlists.playlist_id = $1`,
+      text: `SELECT playlists.playlist_id, playlists.name, users.username
+              FROM playlists
+              LEFT JOIN users
+              ON users.user_id = playlists.owner
+              WHERE playlists.playlist_id = $1`,
       values: [id],
     };
     const result = await this._pool.query(query);
@@ -97,7 +103,9 @@ class PlaylistsService {
    */
   async deletePlaylistById(id) {
     const query = {
-      text: 'DELETE FROM playlists WHERE playlist_id = $1 RETURNING playlist_id',
+      text: `DELETE FROM playlists
+              WHERE playlist_id = $1 
+              RETURNING playlist_id`,
       values: [id],
     };
 
@@ -114,13 +122,17 @@ class PlaylistsService {
    */
   async deleteSongFromPlaylist(playlistId, songId) {
     const query = {
-      text: 'DELETE FROM playlist_songs WHERE playlist_id = $1 AND song_id = $2 RETURNING playlist_song_id',
+      text: `DELETE FROM playlist_songs
+              WHERE playlist_id = $1 AND song_id = $2
+              RETURNING playlist_song_id`,
       values: [playlistId, songId],
     };
     const result = await this._pool.query(query);
 
     if (!result.rows.length) {
-      throw new InvariantError('Lagu gagal dihapus dari playlist. Id tidak ditemukan');
+      throw new InvariantError(
+          'Lagu gagal dihapus dari playlist. Id tidak ditemukan',
+      );
     }
   }
 
@@ -132,7 +144,9 @@ class PlaylistsService {
     try {
       const id = `playlistsongs-${nanoid(16)}`;
       const query = {
-        text: 'INSERT INTO playlist_songs VALUES($1, $2, $3) RETURNING playlist_song_id',
+        text: `INSERT INTO playlist_songs
+                VALUES($1, $2, $3)
+                RETURNING playlist_song_id`,
         values: [id, playlistId, songId],
       };
       const result = await this._pool.query(query);
@@ -176,7 +190,9 @@ class PlaylistsService {
         throw error;
       }
       try {
-        await this._collaborationsService.verifyCollaborator(playlistId, userId);
+        await this._collaborationsService.verifyCollaborator(
+            playlistId, userId,
+        );
       } catch {
         throw error;
       }

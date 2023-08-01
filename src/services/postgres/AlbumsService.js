@@ -10,9 +10,11 @@ const config = require('../../utils/config');
 class AlbumsService {
   /**
    * constructor
+   * @param {service} songsService
    */
-  constructor() {
+  constructor(songsService) {
     this._pool = new Pool();
+    this._songsService = songsService;
   }
 
   /**
@@ -42,33 +44,25 @@ class AlbumsService {
    * @param {string} id
    */
   async getAlbumById(id) {
-    const queryAlbum = {
+    const query = {
       text: `SELECT albums.*, covers.filename 
               FROM albums 
               LEFT JOIN covers ON albums.album_id = covers.album_id WHERE 
               albums.album_id = $1`,
       values: [id],
     };
-    const resultAlbum = await this._pool.query(queryAlbum);
-    if (!resultAlbum.rowCount) {
+    const result = await this._pool.query(query);
+    if (!result.rowCount) {
       throw new NotFoundError('Album tidak ditemukan');
     }
-    const querySongs = {
-      text: 'SELECT song_id, title, performer FROM songs WHERE "albumId" = $1',
-      values: [id],
-    };
-    const resultSongs = await this._pool.query(querySongs);
+    const songs = await this._songsService.getSongsByAlbumId(id);
 
     return {
-      id: resultAlbum.rows[0].album_id,
-      name: resultAlbum.rows[0].name,
-      year: resultAlbum.rows[0].year,
-      coverUrl: resultAlbum.rows[0].filename?`http://${config.app.host}:${config.app.port}/albums/images/${resultAlbum.rows[0].filename}` : null,
-      songs: resultSongs.rows[0]?.song_id ? resultSongs.rows.map((song) => ({
-        id: song.song_id,
-        title: song.title,
-        performer: song.performer,
-      })) : [],
+      id: result.rows[0].album_id,
+      name: result.rows[0].name,
+      year: result.rows[0].year,
+      coverUrl: result.rows[0].filename?`http://${config.app.host}:${config.app.port}/albums/images/${result.rows[0].filename}` : null,
+      songs: songs,
     };
   }
 
